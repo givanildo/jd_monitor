@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP32 WiFi Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial; margin: 0; padding: 20px; background: #f0f2f5; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        h1 { color: #1a73e8; }
+        .status { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .status-item { padding: 10px; border-radius: 5px; }
+        .connected { background: #e6f4ea; color: #137333; }
+        .disconnected { background: #fce8e6; color: #c5221f; }
+        select, input, button { width: 100%; padding: 8px; margin: 5px 0; }
+        button { background: #1a73e8; color: white; border: none; cursor: pointer; }
+        button:hover { background: #1557b0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>ESP32 WiFi Manager</h1>
+            <div id="status" class="status">Carregando...</div>
+        </div>
+        
+        <div class="card">
+            <h2>Conectar WiFi</h2>
+            <select id="networks">
+                <option value="">Carregando redes...</option>
+            </select>
+            <input type="password" id="password" placeholder="Senha">
+            <button onclick="connect()">Conectar</button>
+        </div>
+    </div>
+
+    <script>
+        // Atualiza status
+        async function updateStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                
+                let html = '';
+                
+                // Status AP
+                html += `
+                    <div class="status-item connected">
+                        <h3>Access Point</h3>
+                        <p>IP: ${data.ap.ip}</p>
+                    </div>
+                `;
+                
+                // Status WiFi
+                html += `
+                    <div class="status-item ${data.sta.connected ? 'connected' : 'disconnected'}">
+                        <h3>WiFi</h3>
+                        <p>Status: ${data.sta.connected ? 'Conectado' : 'Desconectado'}</p>
+                        ${data.sta.connected ? `<p>IP: ${data.sta.ip}</p>` : ''}
+                        ${data.sta.ssid ? `<p>Rede: ${data.sta.ssid}</p>` : ''}
+                    </div>
+                `;
+                
+                document.getElementById('status').innerHTML = html;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Escaneia redes
+        async function scanNetworks() {
+            try {
+                const res = await fetch('/api/scan');
+                const data = await res.json();
+                
+                let html = '<option value="">Selecione uma rede...</option>';
+                for (const net of data.networks) {
+                    html += `<option value="${net.ssid}">${net.ssid} (${net.rssi}dB)</option>`;
+                }
+                
+                document.getElementById('networks').innerHTML = html;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Conecta na rede
+        async function connect() {
+            const ssid = document.getElementById('networks').value;
+            const password = document.getElementById('password').value;
+            
+            if (!ssid || !password) {
+                alert('Selecione uma rede e digite a senha!');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/connect', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ssid, password})
+                });
+                
+                const data = await res.json();
+                
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                } else {
+                    alert('Conectado com sucesso!');
+                    updateStatus();
+                }
+            } catch (e) {
+                alert('Erro ao conectar: ' + e);
+            }
+        }
+
+        // Atualiza a cada 5 segundos
+        setInterval(updateStatus, 5000);
+        
+        // Carrega dados iniciais
+        updateStatus();
+        scanNetworks();
+    </script>
+</body>
+</html> 

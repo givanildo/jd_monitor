@@ -1,55 +1,48 @@
-# 🚜 Monitor CAN Bus para Tratores John Deere
+# JD Monitor - Dashboard CAN Bus
 
-Este projeto implementa um sistema de monitoramento CAN bus para tratores John Deere usando ESP32 e dashboard web em Streamlit. O sistema permite a leitura, decodificação e visualização em tempo real dos dados do trator através do protocolo J1939.
+Monitor de dados CAN Bus para equipamentos John Deere com interface web.
 
-## 📋 Características
+## Características
 
-- Leitura de CAN bus a 250kbps
-- Decodificação de mensagens J1939
-- Servidor web embutido no ESP32
-- Dashboard em tempo real com Streamlit
-- Filtros por categoria de dados
-- Histórico de mensagens
-- Visualização de dados em gráficos
-- Suporte a GPS e dados de posicionamento
+- Interface web responsiva com Streamlit
+- Monitoramento em tempo real
+- Gráficos e gauges interativos
+- Conexão WiFi configurável
+- Leitura de dados via CAN Bus
+- Histórico de dados
 
-### 📊 Dados Monitorados
+## Estrutura do Projeto
 
-- **Motor**
-  - RPM
-  - Carga do motor
-  - Torque
-  - Temperatura do líquido de arrefecimento
-  - Temperatura do combustível
-  - Pressão do óleo
-  - Pressão do combustível
+```
+JD_Monitor/
+├── src/
+│   ├── esp32/
+│   │   └── main.py         # Código do ESP32
+│   └── dashboard/
+│       └── dashboard.py    # Interface web Streamlit
+├── requirements.txt
+├── README.md
+└── LICENSE
+```
 
-- **Posição**
-  - Latitude
-  - Longitude
-  - Altitude
-  - Velocidade
+## Requisitos
 
-- **Ambiente**
-  - Temperatura ambiente
-  - Temperatura do ar de admissão
+### Hardware
+- ESP32
+- Transceiver CAN
+- Conexão WiFi
 
-- **Implemento**
-  - Status diversos do implemento
+### Software
+- Python 3.7+
+- MicroPython (ESP32)
+- Bibliotecas Python (ver requirements.txt)
 
-## 🛠️ Hardware Necessário
-
-- ESP32 (recomendado: ESP32-WROOM-32)
-- Transceiver CAN (MCP2515 ou TJA1050)
-- Conector diagnóstico J1939
-- Resistores terminadores 120Ω (2x)
-
-## 📥 Instalação
+## Instalação
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/seu-usuario/nome-do-repo.git
-cd nome-do-repo
+git clone https://github.com/givanildobrunetta/jd_monitor.git
+cd jd_monitor
 ```
 
 2. Instale as dependências:
@@ -57,111 +50,32 @@ cd nome-do-repo
 pip install -r requirements.txt
 ```
 
-3. Configure o WiFi no arquivo `web_server.py`:
-```python
-wlan.connect('sua_rede', 'sua_senha')
-```
-
-4. Carregue os arquivos no ESP32:
+3. Upload do código para ESP32:
 ```bash
-mpremote cp main.py :main.py
-mpremote cp web_server.py :web_server.py
-mpremote cp j1939_parser.py :j1939_parser.py
+mpremote cp src/esp32/main.py :main.py
+mpremote reset
 ```
 
-## 🚀 Uso
-
-1. Conecte o ESP32 ao barramento CAN do trator
-2. Inicie o servidor web no ESP32
-3. Execute o dashboard Streamlit:
+4. Execute o dashboard:
 ```bash
-streamlit run dashboard.py
+streamlit run src/dashboard/dashboard.py
 ```
 
-### 🌐 API Web
+## Uso
 
-O servidor web suporta os seguintes endpoints:
+1. Conecte ao AP "JD_Monitor" (senha: 12345678)
+2. Configure a rede WiFi
+3. Acesse o dashboard via navegador
+4. Monitore os dados em tempo real
 
-- `/dados` - Todos os dados
-- `/dados?categoria=motor,posicao` - Dados específicos por categoria
-- `/dados?historico=motor` - Histórico de dados
-- `/dados?estatisticas=true` - Estatísticas de mensagens
+## Contribuição
 
-## 📊 Dashboard
+Contribuições são bem-vindas! Por favor, sinta-se à vontade para submeter um Pull Request.
 
-O dashboard Streamlit oferece:
-- Visualização em tempo real dos dados do motor
-- Gráficos históricos
-- Mapa de posicionamento
-- Indicadores de temperatura e pressão
-- Estatísticas de mensagens CAN
+## Licença
 
-## 🔌 Pinagem ESP32
+Este projeto está licenciado sob a MIT License - veja o arquivo LICENSE para detalhes.
 
-- GPIO5 - TX CAN
-- GPIO4 - RX CAN
-- 3.3V - VCC
-- GND - GND
+## Autor
 
-## ⚠️ Notas de Segurança
-
-- Use proteção adequada no circuito
-- Verifique a tensão do barramento CAN (geralmente 12V)
-- Use divisor de tensão se necessário
-- Não modifique parâmetros críticos do trator
-
-## 📁 Estrutura do Projeto
-
-```
-canbus-monitor/
-├── README.md
-├── requirements.txt
-├── LICENSE
-├── src/
-│   ├── esp32/
-│   │   ├── main.py
-│   │   ├── web_server.py
-│   │   └── j1939_parser.py
-│   └── dashboard/
-│       └── dashboard.py
-├── docs/
-│   └── images/
-└── tests/
-```
-
-## 📦 Dependências
-
-As principais dependências do projeto estão listadas no arquivo `requirements.txt`:
-
-- streamlit
-- pandas
-- plotly
-- folium
-- streamlit-folium
-- requests
-- mpremote
-- esptool
-
-## 🤝 Contribuições
-
-Contribuições são bem-vindas! Por favor:
-
-1. Faça um Fork do projeto
-2. Crie uma Branch para sua Feature (`git checkout -b feature/AmazingFeature`)
-3. Faça commit das suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Faça Push para a Branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-## ✍️ Autor
-
-Givanildo - [@givanildo](https://github.com/givanildo)
-
-## 🙏 Agradecimentos
-- https://github.com/FarmLogs/pysobus
-- John Deere pela documentação J1939
-- Comunidade MicroPython
-- Contribuidores do Streamlit
+Givanildo Brunetta - givanildobrunetta@gmail.com

@@ -1,81 +1,77 @@
-# JD Monitor - Dashboard CAN Bus
+# Monitor CAN Bus - John Deere
 
-Monitor de dados CAN Bus para equipamentos John Deere com interface web.
+Monitor para dados ISOBUS/J1939 de tratores John Deere usando ESP32 e Streamlit.
 
 ## Características
 
-- Interface web responsiva com Streamlit
-- Monitoramento em tempo real
-- Gráficos e gauges interativos
-- Conexão WiFi configurável
-- Leitura de dados via CAN Bus
-- Histórico de dados
-
-## Estrutura do Projeto
-
-```
-JD_Monitor/
-├── src/
-│   ├── esp32/
-│   │   └── main.py         # Código do ESP32
-│   └── dashboard/
-│       └── dashboard.py    # Interface web Streamlit
-├── requirements.txt
-├── README.md
-└── LICENSE
-```
-
-## Requisitos
-
-### Hardware
-- ESP32
-- Transceiver CAN
-- Conexão WiFi
-
-### Software
-- Python 3.7+
-- MicroPython (ESP32)
-- Bibliotecas Python (ver requirements.txt)
+- Leitura de dados CAN Bus em tempo real
+- Interface web responsiva
+- Visualização de métricas do motor e veículo
+- Gráficos históricos e análises
+- Filtros e configurações personalizáveis
+- Suporte ao protocolo ISOBUS/J1939
 
 ## Instalação
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/givanildo/jd_monitor.git
-cd jd_monitor
+git clone https://github.com/seu-usuario/can_bus_monitor.git
+cd can_bus_monitor
 ```
 
-2. Instale as dependências:
+2. Crie e ative um ambiente virtual:
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
+```
+
+3. Instale as dependências:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Upload do código para ESP32:
+## Configuração do ESP32
+
+1. Conecte o ESP32 via USB
+
+2. Upload do código:
 ```bash
-mpremote cp src/esp32/main.py :main.py
-mpremote reset
+python tools/upload_esp32.py
 ```
 
-4. Execute o dashboard:
+3. Conecte ao AP do ESP32:
+- SSID: JD_Monitor
+- Senha: 12345678
+
+4. Configure a rede WiFi através do portal web
+
+## Executando o Dashboard
+
 ```bash
 streamlit run src/dashboard/dashboard.py
 ```
 
-## Uso
+## Estrutura do Projeto
 
-1. Conecte ao AP "JD_Monitor" (senha: 12345678)
-2. Configure a rede WiFi
-3. Acesse o dashboard via navegador
-4. Monitore os dados em tempo real
+- `src/dashboard/`: Código do dashboard Streamlit
+- `src/esp32/`: Código do ESP32 e parser ISOBUS
+- `tools/`: Utilitários e scripts
+- `requirements.txt`: Dependências do projeto
 
-## Contribuição
+## Contribuindo
 
-Contribuições são bem-vindas! Por favor, sinta-se à vontade para submeter um Pull Request.
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -am 'Adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
+5. Crie um Pull Request
 
 ## Licença
 
-Este projeto está licenciado sob a MIT License - veja o arquivo LICENSE para detalhes.
+Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## Autor
+## Créditos
 
-Givanildo Brunetta - givanildobrunetta@gmail.com
+- Baseado no protocolo ISOBUS/J1939
+- Inspirado no [pysobus](https://github.com/FarmLogs/pysobus)

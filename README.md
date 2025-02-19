@@ -41,7 +41,7 @@ JD_Monitor/
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/givanildobrunetta/jd_monitor.git
+git clone https://github.com/givanildo/jd_monitor.git
 cd jd_monitor
 ```
 

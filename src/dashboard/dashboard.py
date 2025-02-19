@@ -9,28 +9,84 @@ import folium
 from streamlit_folium import st_folium
 from src.esp32.isobus.j1939_parser import J1939Parser
 
-# Configuração inicial do Streamlit
-st.set_page_config(
-    page_title="Dashboard Trator John Deere ISOBUS",
-    page_icon="🚜",
-    layout="wide"
-)
-
-# Título do dashboard
-st.title("🚜 Monitor ISOBUS - Trator John Deere")
-
-# Inicialização do estado da sessão
-if 'dados_historicos' not in st.session_state:
-    st.session_state.dados_historicos = pd.DataFrame()
-if 'parser' not in st.session_state:
-    st.session_state.parser = J1939Parser()
-
-# Configurações no sidebar
-with st.sidebar:
-    st.header("Configurações")
-    esp32_ip = st.text_input("IP do ESP32", "192.168.4.1")
-    intervalo_atualizacao = st.slider("Intervalo de atualização (s)", 1, 10, 2)
-    max_pontos = st.slider("Máximo de pontos no gráfico", 50, 500, 100)
+# Classe principal do dashboard
+class Dashboard:
+    def __init__(self):
+        self.setup_page()
+        self.init_session_state()
+        self.setup_sidebar()
+        
+    def setup_page(self):
+        st.set_page_config(
+            page_title="Monitor ISOBUS - John Deere",
+            page_icon="🚜",
+            layout="wide"
+        )
+        st.title("🚜 Monitor ISOBUS - John Deere")
+        
+    def init_session_state(self):
+        if 'dados_historicos' not in st.session_state:
+            st.session_state.dados_historicos = pd.DataFrame()
+        if 'parser' not in st.session_state:
+            st.session_state.parser = J1939Parser()
+            
+    def setup_sidebar(self):
+        with st.sidebar:
+            st.header("Configurações")
+            self.esp32_ip = st.text_input("IP do ESP32", "192.168.4.1")
+            self.intervalo = st.slider("Atualização (s)", 1, 10, 2)
+            self.max_pontos = st.slider("Máx. pontos", 50, 500, 100)
+            
+    def run(self):
+        if st.sidebar.button("Iniciar Monitoramento"):
+            while True:
+                self.update_dashboard()
+                time.sleep(self.intervalo)
+                
+    def update_dashboard(self):
+        dados = self.get_data()
+        if dados:
+            self.show_metrics(dados)
+            self.update_charts(dados)
+            
+    def get_data(self):
+        try:
+            response = requests.get(
+                f"http://{self.esp32_ip}/api/data", 
+                timeout=2
+            )
+            return response.json()
+        except:
+            return None
+            
+    def show_metrics(self, dados):
+        cols = st.columns(4)
+        engine = dados.get('engine', {})
+        
+        with cols[0]:
+            st.metric("RPM", f"{engine.get('engine_speed', 0):.0f}")
+        with cols[1]:
+            st.metric("Temperatura", f"{engine.get('coolant_temp', 0)}°C")
+        with cols[2]:
+            st.metric("Consumo", f"{engine.get('fuel_rate', 0):.1f} L/h")
+        with cols[3]:
+            st.metric("Carga", f"{engine.get('load', 0):.1f}%")
+            
+    def update_charts(self, dados):
+        # Atualiza histórico
+        if len(st.session_state.dados_historicos) > self.max_pontos:
+            st.session_state.dados_historicos = (
+                st.session_state.dados_historicos.iloc[-self.max_pontos:]
+            )
+        
+        # Gráfico RPM
+        fig = px.line(
+            st.session_state.dados_historicos,
+            x='timestamp',
+            y='engine_speed',
+            title='RPM do Motor'
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
 # Layout em três colunas
 col1, col2, col3 = st.columns([2, 2, 1])

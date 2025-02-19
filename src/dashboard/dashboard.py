@@ -7,7 +7,7 @@ from datetime import datetime
 import time
 import folium
 from streamlit_folium import st_folium
-from j1939_parser import J1939Parser
+from src.esp32.isobus.j1939_parser import J1939Parser
 
 # Configuração inicial do Streamlit
 st.set_page_config(

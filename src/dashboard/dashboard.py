@@ -7,6 +7,7 @@ from datetime import datetime
 import time
 import folium
 from streamlit_folium import st_folium
+from j1939_parser import J1939Parser
 
 # Configuração inicial do Streamlit
 st.set_page_config(
@@ -21,11 +22,13 @@ st.title("🚜 Monitor ISOBUS - Trator John Deere")
 # Inicialização do estado da sessão
 if 'dados_historicos' not in st.session_state:
     st.session_state.dados_historicos = pd.DataFrame()
+if 'parser' not in st.session_state:
+    st.session_state.parser = J1939Parser()
 
 # Configurações no sidebar
 with st.sidebar:
     st.header("Configurações")
-    esp32_ip = st.text_input("IP do ESP32", "192.168.1.100")
+    esp32_ip = st.text_input("IP do ESP32", "192.168.4.1")
     intervalo_atualizacao = st.slider("Intervalo de atualização (s)", 1, 10, 2)
     max_pontos = st.slider("Máximo de pontos no gráfico", 50, 500, 100)
 
@@ -35,7 +38,7 @@ col1, col2, col3 = st.columns([2, 2, 1])
 # Função para buscar dados do ESP32
 def buscar_dados_esp32(url):
     try:
-        response = requests.get(f"http://{url}", timeout=2)
+        response = requests.get(f"http://{url}/api/data", timeout=2)
         return response.json()
     except:
         return None
@@ -61,51 +64,30 @@ def atualizar_dashboard():
     dados = buscar_dados_esp32(esp32_ip)
     if dados:
         # Atualiza métricas do motor
-        engine_data = dados['engine_data']
-        with col1:
-            motor_metrics.columns([
-                dict(
-                    metric="RPM",
-                    value=f"{engine_data.get('rpm', 0):.0f}",
-                    delta=f"{engine_data.get('load', 0):.1f}%"
-                ),
-                dict(
-                    metric="Consumo",
-                    value=f"{engine_data.get('fuel_rate', 0):.1f} L/h"
-                )
-            ])
+        engine_data = dados.get('engine', {})
+        with motor_metrics:
+            cols = st.columns(2)
+            with cols[0]:
+                st.metric("RPM", f"{engine_data.get('engine_speed', 0):.0f}")
+                st.metric("Carga", f"{engine_data.get('load', 0):.1f}%")
+            with cols[1]:
+                st.metric("Consumo", f"{engine_data.get('fuel_rate', 0):.1f} L/h")
+                st.metric("Temperatura", f"{engine_data.get('coolant_temp', 0)}°C")
             
-            # Gráfico de RPM histórico
-            if 'historico' in dados:
-                df_hist = pd.DataFrame(dados['historico'])
-                fig_rpm = px.line(df_hist, x='timestamp', y='valores.Engine_Speed',
-                                title='RPM do Motor')
-                rpm_chart.plotly_chart(fig_rpm, use_container_width=True)
+        # Atualiza histórico
+        if len(st.session_state.dados_historicos) > max_pontos:
+            st.session_state.dados_historicos = st.session_state.dados_historicos.iloc[-max_pontos:]
         
-        # Atualiza mapa
-        position_data = dados['position_data']
-        if position_data.get('latitude') and position_data.get('longitude'):
-            m = folium.Map(
-                location=[position_data['latitude'], position_data['longitude']],
-                zoom_start=16
-            )
-            folium.Marker(
-                [position_data['latitude'], position_data['longitude']],
-                popup="Trator",
-                icon=folium.Icon(color='green', icon='info-sign')
-            ).add_to(m)
-            mapa.empty()
-            st_folium(m, width=400, height=300)
-        
-        # Atualiza dados do implemento
-        implement_data = dados['implement_data']
-        implemento_info.json(implement_data)
-        
-        # Atualiza dados de produtividade
-        yield_data = dados['yield_data']
-        yield_info.json(yield_data)
+        # Gráfico de RPM
+        with rpm_chart:
+            fig = px.line(st.session_state.dados_historicos, 
+                         x='timestamp', 
+                         y='engine_speed',
+                         title='RPM do Motor')
+            st.plotly_chart(fig, use_container_width=True)
 
 # Loop principal de atualização
-while True:
-    atualizar_dashboard()
-    time.sleep(intervalo_atualizacao)
+if st.sidebar.button("Iniciar Monitoramento"):
+    while True:
+        atualizar_dashboard()
+        time.sleep(intervalo_atualizacao)

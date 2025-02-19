@@ -15,7 +15,7 @@ Monitor para dados ISOBUS/J1939 de tratores John Deere usando ESP32 e Streamlit.
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/seu-usuario/can_bus_monitor.git
+git clone https://github.com/givanildo/can_bus_monitor.git
 cd can_bus_monitor
 ```
 
@@ -70,6 +70,10 @@ streamlit run src/dashboard/dashboard.py
 ## Licença
 
 Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## Autor
+
+Givanildo Brunetta - givanildobrunetta@gmail.com
 
 ## Créditos
 
